@@ -1,0 +1,74 @@
+{{- range $name, $svc := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "order-system.labels" (dict "root" $ "name" $name) | nindent 4 }}
+spec:
+  replicas: {{ $svc.replicas }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      {{- include "order-system.selectorLabels" (dict "root" $ "name" $name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "order-system.selectorLabels" (dict "root" $ "name" $name) | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ $name }}
+          image: "{{ required "image.registry is required" $.Values.image.registry }}/{{ $.Values.image.repositoryPrefix }}/{{ $name }}:{{ required (printf "services.%s.image.tag is required" $name) $svc.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            {{- with $svc.database }}
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://{{ required "database.host is required" $.Values.database.host }}:{{ $.Values.database.port }}/{{ .name }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .username | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.database.secretName }}
+                  key: {{ .passwordKey }}
+            {{- end }}
+            {{- range $key, $value := $svc.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36       # allow up to 3 minutes for the first start
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml $svc.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml $.Values.containerSecurityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp          # the only writable path (Tomcat and the JVM need it)
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  {{- end }}

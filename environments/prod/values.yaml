@@ -1,0 +1,21 @@
+# Production environment. CI updates the image tags through pull requests.
+
+image:
+  registry: 247842832110.dkr.ecr.us-east-1.amazonaws.com
+
+database:
+  host: order-system-mysql.ci74saq0mjkk.us-east-1.rds.amazonaws.com
+
+ingress:
+  host: app.32-201-203-62.sslip.io   # your node_public_ip with dashes instead of dots
+
+services:
+  product-service:
+    image:
+      tag: 932e3561b869430374bc4d7e87ceef43e4bc49d2
+  order-service:
+    image:
+      tag: 932e3561b869430374bc4d7e87ceef43e4bc49d2
+  api-gateway:
+    image:
+      tag: 932e3561b869430374bc4d7e87ceef43e4bc49d2

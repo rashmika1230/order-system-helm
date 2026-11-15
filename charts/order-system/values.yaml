@@ -1,0 +1,80 @@
+# Defaults shared by every environment. Environment files override only what differs.
+
+image:
+  registry: ""                 # e.g. <account>.dkr.ecr.us-east-1.amazonaws.com (set per environment)
+  repositoryPrefix: order-system
+  pullPolicy: IfNotPresent
+
+database:
+  host: ""                     # RDS endpoint (set per environment)
+  port: 3306
+  secretName: order-system-db  # created outside Git; holds the passwords
+
+ingress:
+  enabled: true
+  className: traefik           # k3s's built-in ingress controller
+  host: ""                     # set per environment
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+services:
+  product-service:
+    replicas: 1
+    image:
+      tag: ""                  # set by CI in environments/<env>/values.yaml
+    database:
+      name: product_db
+      username: product_user
+      passwordKey: product-password
+    env:
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
+    resources:
+      requests:
+        cpu: 100m
+        memory: 384Mi
+      limits:
+        memory: 512Mi
+
+  order-service:
+    replicas: 1
+    image:
+      tag: ""
+    database:
+      name: order_db
+      username: order_user
+      passwordKey: order-password
+    env:
+      PRODUCT_SERVICE_URL: http://product-service:8080
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
+    resources:
+      requests:
+        cpu: 100m
+        memory: 384Mi
+      limits:
+        memory: 512Mi
+
+  api-gateway:
+    replicas: 1
+    image:
+      tag: ""
+    env:
+      PRODUCT_SERVICE_URL: http://product-service:8080
+      ORDER_SERVICE_URL: http://order-service:8080
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY: info
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 384Mi
