@@ -1,0 +1,56 @@
+# kube-prometheus-stack 93.3.0 on a single-node k3s cluster
+
+# k3s runs these control-plane components inside one process and does not expose
+# their metrics, so scraping them would only create false "target down" alerts
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
+defaultRules:
+  rules:
+    etcd: false
+    kubeControllerManager: false
+    kubeProxy: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+
+prometheus:
+  prometheusSpec:
+    retention: 2d
+    # Use ServiceMonitors and PrometheusRules from every namespace,
+    # not only ones labelled for this Helm release
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+grafana:
+  admin:
+    existingSecret: grafana-admin   # created by hand, never in Git
+    userKey: admin-user
+    passwordKey: admin-password
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi

@@ -1,0 +1,20 @@
+# Platform tools (monitoring) need cluster-wide resources: CRDs, cluster roles,
+# node-exporter. That is why they get a separate, more trusted project than the app.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Cluster-wide platform tools
+  sourceRepos:
+    - https://prometheus-community.github.io/helm-charts
+    - https://github.com/rashmika1230/order-system-helm.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: monitoring
+    - server: https://kubernetes.default.svc
+      namespace: kube-system   # services used to scrape kubelet and CoreDNS
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
