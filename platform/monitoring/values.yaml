@@ -34,6 +34,16 @@ prometheus:
       limits:
         memory: 1Gi
 
+prometheusOperator:
+  # The admission webhook gets its certificate from Helm hook Jobs. Argo CD re-runs
+  # hooks on every sync and treats the patched webhooks as drift, so the Jobs loop
+  # forever. Disabled on this single-node cluster; production clusters keep it and
+  # issue the certificate with cert-manager instead.
+  admissionWebhooks:
+    enabled: false
+  tls:
+    enabled: false   # the operator's TLS certificate came from the same hook Job
+
 grafana:
   admin:
     existingSecret: grafana-admin   # created by hand, never in Git
