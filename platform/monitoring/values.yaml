@@ -46,15 +46,15 @@ prometheusOperator:
 
 grafana:
   admin:
-    existingSecret: grafana-admin   # created by hand, never in Git
+    existingSecret: grafana-admin
     userKey: admin-user
     passwordKey: admin-password
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
-    limits:
       memory: 256Mi
+    limits:
+      memory: 512Mi   # 256Mi was too low: Grafana was OOMKilled while loading dashboards
 
 alertmanager:
   alertmanagerSpec:
