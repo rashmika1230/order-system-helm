@@ -9,10 +9,10 @@ ingress:
 services:
   product-service:
     image:
-      tag: 269f17fdb5c93220c98541654ae40f5c61509c42
+      tag: f35c33890b8f8f9bb36c1eb30a6fb4ea189bac10
   order-service:
     image:
-      tag: 269f17fdb5c93220c98541654ae40f5c61509c42
+      tag: f35c33890b8f8f9bb36c1eb30a6fb4ea189bac10
   api-gateway:
     image:
-      tag: 269f17fdb5c93220c98541654ae40f5c61509c42
+      tag: f35c33890b8f8f9bb36c1eb30a6fb4ea189bac10
