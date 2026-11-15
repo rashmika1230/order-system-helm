@@ -1,0 +1,11 @@
+# Installation values for the argo-cd Helm chart 10.18.0 (Argo CD v3.6.1)
+
+dex:
+  enabled: false          # no SSO: a single local admin user is enough here
+
+notifications:
+  enabled: false          # alerts will come from Alertmanager
+
+configs:
+  cm:
+    timeout.reconciliation: 60s   # check Git every minute (default: 120s)

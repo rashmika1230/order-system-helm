@@ -1,0 +1,23 @@
+# What to deploy: the chart + prod values from main, into the order-system namespace
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: order-system-prod
+  namespace: argocd
+spec:
+  project: order-system
+  source:
+    repoURL: https://github.com/rashmika1230/order-system-helm.git
+    targetRevision: main
+    path: charts/order-system
+    helm:
+      releaseName: order-system     # keeps the same labels as the manual install
+      valueFiles:
+        - ../../environments/prod/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: order-system
+  syncPolicy:
+    automated:
+      prune: true      # resources deleted from Git are deleted from the cluster
+      selfHeal: true   # manual changes in the cluster are reverted to match Git

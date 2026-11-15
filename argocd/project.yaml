@@ -1,0 +1,23 @@
+# Guard rails: what ArgoCD may deploy for this project, and where
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: order-system
+  namespace: argocd
+spec:
+  description: Order System production workloads
+  sourceRepos:
+    - https://github.com/rashmika1230/order-system-helm.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: order-system
+  # No cluster-wide resources (namespaces, cluster roles, CRDs) can be created
+  clusterResourceWhitelist: []
+  # Only the kinds our chart actually uses
+  namespaceResourceWhitelist:
+    - group: apps
+      kind: Deployment
+    - group: ""
+      kind: Service
+    - group: networking.k8s.io
+      kind: Ingress
